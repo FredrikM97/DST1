@@ -1,0 +1,61 @@
+void store(float input){
+	if(dayArrayIndex == 1440){ // if end of day
+		// make my day
+		struct DListNode* day = newNode();
+		if(day == NULL){ // if no memory
+			sysState.error = true;
+			tempData->tail = tempData->tail->next; // wrap around
+		}
+		else
+			append(tempData, day);
+		dayArrayIndex = 0;
+	}
+	struct dayObject* day = tempData->tail->day;
+	day->data[dayArrayIndex] = input;
+	day->avg += (day->avg-input)/(dayArrayIndex);
+	if(day->max < input)
+		day->max = input;
+	else if(day->min > input)
+		day->min = input;
+	dayArrayIndex++;
+}
+
+void store(float input){
+	union Var var;
+	if(dayIndex%daySize == 0){ //	if new day
+		if(dayIndex >= (65536-daySize-dataOffset)){ // if out of space
+			sysState.error = 1; // report error
+			dayIndex = 0; // start over
+		}
+		//	make new day
+		var.Int = dataOffset + 4*dayIndex;
+		Set_ADP(var.Char[0],var.Char[1]);
+		for(int i = 4; i!=0;i--) 
+			exportData(input);
+		dayIndex+=4;
+	} else {
+	
+	//	update avgerage, min & max
+	var.Int = dataOffset + 4*((dayIndex/daySize)*daySize);
+	float average = inportData(var.Short[0]);
+	float min = inportData(var.Short[0]+4);
+	float max = inportData(var.Short[0]+8);
+	
+	average += (input-average)/(dayIndex%daySize-2);
+	Set_ADP(var.Char[0],var.Char[1]);
+	exportData(average);
+	if(min > input)
+		exportData(input);
+	else if(max < input){
+		var.Int = dataOffset + 4*((dayIndex/daySize)*daySize + 2);
+		Set_ADP(var.Char[0],var.Char[1]);
+		exportData(input);
+	}
+	
+	// Store data
+	var.Int = dataOffset + 4*dayIndex;
+	Set_ADP(var.Char[0],var.Char[1]);
+	exportData(input);
+	dayIndex++;
+	}
+}

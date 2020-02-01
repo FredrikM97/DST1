@@ -33,3 +33,5 @@ Upon activation, a function is called which stores a fine (its) function which i
 ## Unit test
 For testing the hardware on each module. Checks so all hardware responds and records values ​​that may be appropriate to receive in response.
 
+## Flowchart
+![](Flowchart.png)
